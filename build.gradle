@@ -2,15 +2,23 @@ allprojects {
 	group 'me.loda.springboot'
 	version '1.0-SNAPSHOT'
 
-	apply plugin: 'eclipse'
+	apply plugin: 'java'
 	apply plugin: 'idea'
+
+	repositories {
+		mavenCentral()
+		jcenter()
+	}
 }
 
 buildscript {
 	ext {
-		springBootVersion = '2.0.5.RELEASE'
+		springBootVersion = '2.1.3.RELEASE'
 		springManagementVersion = '1.0.7.RELEASE'
-		lombokVersion = '1.18.6'
+		lombokVersion = '1.18.4'
+
+		guavaVersion = '27.1-jre'
+		commonLang3Version = '3.8.1'
 	}
 	repositories {
 		mavenCentral()
@@ -20,39 +28,62 @@ buildscript {
 		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
 		classpath("io.spring.gradle:dependency-management-plugin:${springManagementVersion}")
 	}
-
 }
-subprojects {
 
-	apply plugin: 'java'
-	apply plugin: 'eclipse'
+subprojects {
 	apply plugin: 'io.spring.dependency-management'
 	apply plugin: 'org.springframework.boot'
 
 	sourceCompatibility = 1.8
 	targetCompatibility = 1.8
 
-	repositories {
-		mavenLocal()
-		mavenCentral()
+	def defaultEncoding = 'UTF-8'
+	tasks.withType(AbstractCompile).each { it.options.encoding = defaultEncoding }
+
+	javadoc {
+		options.encoding = defaultEncoding
+		options.addBooleanOption('Xdoclint:none', true)
 	}
 
-	configurations {
-		compileOnly {
-			extendsFrom annotationProcessor
-		}
+	compileJava.dependsOn(processResources)
+
+	springBoot {
+		buildInfo()
 	}
 
 	dependencies{
+		annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+		annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+		compileOnly "org.springframework.boot:spring-boot-configuration-processor"
+		compileOnly "org.projectlombok:lombok:${lombokVersion}"
+
 		// SPRING DEPENDENCIES
 		implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-		implementation 'com.h2database.h2'
+		runtimeOnly 'mysql:mysql-connector-java'
 
 		// Utilities
-		compileOnly "org.projectlombok:lombok:${lombokVersion}"
-		annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+		compile group: 'com.google.guava', name: 'guava', version: "${guavaVersion}"
+		compile group: 'org.apache.commons', name: 'commons-lang3', version: "${commonLang3Version}"
+
 
 		// TEST
 		testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	}
+
+}
+
+project(':service') {
+	dependencies {
+		implementation project(':common')
+		compile('org.springframework.boot:spring-boot-starter-web')
+		compile('org.springframework.boot:spring-boot-devtools')
+	}
+}
+
+project(':common'){
+
+}
+
+gradle.buildFinished {
+	project.buildDir.deleteDir()
 }
