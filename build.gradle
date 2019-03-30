@@ -1,0 +1,58 @@
+allprojects {
+	group 'me.loda.springboot'
+	version '1.0-SNAPSHOT'
+
+	apply plugin: 'eclipse'
+	apply plugin: 'idea'
+}
+
+buildscript {
+	ext {
+		springBootVersion = '2.0.5.RELEASE'
+		springManagementVersion = '1.0.7.RELEASE'
+		lombokVersion = '1.18.6'
+	}
+	repositories {
+		mavenCentral()
+		jcenter()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+		classpath("io.spring.gradle:dependency-management-plugin:${springManagementVersion}")
+	}
+
+}
+subprojects {
+
+	apply plugin: 'java'
+	apply plugin: 'eclipse'
+	apply plugin: 'io.spring.dependency-management'
+	apply plugin: 'org.springframework.boot'
+
+	sourceCompatibility = 1.8
+	targetCompatibility = 1.8
+
+	repositories {
+		mavenLocal()
+		mavenCentral()
+	}
+
+	configurations {
+		compileOnly {
+			extendsFrom annotationProcessor
+		}
+	}
+
+	dependencies{
+		// SPRING DEPENDENCIES
+		implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+		implementation 'com.h2database.h2'
+
+		// Utilities
+		compileOnly "org.projectlombok:lombok:${lombokVersion}"
+		annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+		// TEST
+		testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	}
+}
